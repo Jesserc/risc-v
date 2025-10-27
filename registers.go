@@ -1,38 +1,38 @@
 package main
 
 const (
-	ZERO = 0 // zero register
-	RA   = 1 // return address
-	SP   = 2 // stack pointer
-	GP   = 3 // global pointer
-	TP   = 4 // thread pointer
-	T0   = 5 // temporary register (t0-t6)
-	T1   = 6
-	T2   = 7
-	S0   = 8 // saved register (s0-s11)
-	S1   = 9
-	A0   = 10 // argument register (a0-a7)
-	A1   = 11
-	A2   = 12
-	A3   = 13
-	A4   = 14
-	A5   = 15
-	A6   = 16
-	A7   = 17
-	S2   = 18
-	S3   = 19
-	S4   = 20
-	S5   = 21
-	S6   = 22
-	S7   = 23
-	S8   = 24
-	S9   = 25
-	S10  = 26
-	S11  = 27
-	T3   = 28
-	T4   = 29
-	T5   = 30
-	T6   = 31
+	ZERO = iota // zero register
+	RA   = iota // return address
+	SP   = iota // stack pointer - set, but not used
+	GP   = iota // global pointer - not used
+	TP   = iota // thread pointer - not used
+	T0   = iota // temporary register (t0-t6)
+	T1   = iota
+	T2   = iota
+	S0   = iota // saved register (s0-s11)
+	S1   = iota
+	A0   = iota // argument register (a0-a7)
+	A1   = iota
+	A2   = iota
+	A3   = iota
+	A4   = iota
+	A5   = iota
+	A6   = iota
+	A7   = iota
+	S2   = iota
+	S3   = iota
+	S4   = iota
+	S5   = iota
+	S6   = iota
+	S7   = iota
+	S8   = iota
+	S9   = iota
+	S10  = iota
+	S11  = iota
+	T3   = iota
+	T4   = iota
+	T5   = iota
+	T6   = iota
 )
 
 /*
