@@ -93,7 +93,7 @@ func (cpu *CPU) Execute(instr uint32) error {
 			switch funct7 {
 			case 0x00:
 				// add
-				return cpu.executeAdd(instr, rs1, rs2, rd)
+				return cpu.executeAdd(rs1, rs2, rd)
 			case 0x20:
 				// sub (unimplemented)
 				return errors.New("sub is unimplemented yet")
@@ -129,14 +129,7 @@ func (cpu *CPU) Run() {
 // Instruction implementations
 
 // ADD
-func (cpu *CPU) executeAdd(instr uint32, rs1 uint32, rs2 uint32, rd uint32) error {
-
-	// extract the rs1, rs2, and rd from the instruction
-	// rs1 is bits [19:15]
-
-	// rs2 is bits [24:20]
-
-	// rd is bits [11:7]
+func (cpu *CPU) executeAdd(rs1 uint32, rs2 uint32, rd uint32) error {
 
 	return nil
 }
