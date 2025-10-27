@@ -75,7 +75,7 @@ func (cpu *CPU) Execute(instr uint32) error {
 		// 7 bits for funct7, 5 bits for rs2, 5 bits for rs1, 3 bits for funct3, 5 bits for rd, 7 bits for opcode
 		// so we can extract the funct7, funct3, rs1, rs2, rd and opcode from the instruction by shifting and masking
 
-		opcode = instr & 0x7F         // mask out all but the lowest 7 bits to get the opcode
+		opcode = instr & 0x7F         // mask out all but the lowest 7 bits to get the opcode (as explained above)
 		funct3 = (instr >> 12) & 0x7  // shift right by 12 bits and mask out all but the lowest 3 bits to get the funct3 (function code)
 		funct7 = (instr >> 25) & 0x7F // shift right by 25 bits and mask out all but the lowest 7 bits to get the funct7 (function code)
 
