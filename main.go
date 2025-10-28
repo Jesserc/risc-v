@@ -11,7 +11,7 @@ func main() {
 	cpu := NewCPU()
 
 	// our program will perform the following operations:
-	// Load immediate, add, subtract, store to memory
+	// Load upper immediate, add immediate, add, subtract, store to memory
 	// (LUI, ADDI, ADD, SUB, SW)
 
 	// these are already-encoded machine code instructions (not assembly)
