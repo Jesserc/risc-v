@@ -8,7 +8,7 @@ import (
 )
 
 // references:
-//  - https://github.com/jameslzhu/riscv-card
+//  - https://projectf.io/
 //  - https://github.com/jameslzhu/riscv-card
 
 type CPU struct {
