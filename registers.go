@@ -1,6 +1,7 @@
 package main
 
 const (
+	// 0-31 registers
 	ZERO = iota // zero register
 	RA   = iota // return address
 	SP   = iota // stack pointer - set, but not used
