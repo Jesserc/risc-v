@@ -59,7 +59,7 @@ func (cpu *CPU) GetRegisterValue(register string) (uint32, error) {
 func (cpu *CPU) FetchAndDecode() (instr uint32, err error) {
 	// fetch instruction from memory
 	// and convert it to a 32-bit word
-	instr = binary.LittleEndian.Uint32(cpu.Memory[cpu.PC : cpu.PC+4]) // instr will now be ordered this way: [funct7][rs2][rs1][funct3][rd][opcode]
+	instr = binary.LittleEndian.Uint32(cpu.Memory[cpu.PC : cpu.PC+4]) // hence for an R-type instruction, `instr` will now be ordered this way: [funct7][rs2][rs1][funct3][rd][opcode]
 
 	// program counter is incremented by 4 bytes (32 bits) each time we fetch an instruction
 	// because each instruction is 4 bytes
