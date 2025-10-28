@@ -7,6 +7,10 @@ import (
 	"slices"
 )
 
+// references:
+//  - https://github.com/jameslzhu/riscv-card
+//  - https://github.com/jameslzhu/riscv-card
+
 type CPU struct {
 	Memory   []byte            // memory is an array of bytes
 	RegNames []string          // registerNames is an array of risc-v register names
@@ -17,7 +21,7 @@ type CPU struct {
 
 func NewCPU() CPU {
 	cpu := CPU{
-		Memory:   make([]byte, 65536),
+		Memory:   make([]byte, 65536), // 64KB memory (which is okay for this emulator)
 		RegNames: []string{"zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"},
 		RegMap:   make(map[string]uint32),
 		PC:       0,
@@ -57,7 +61,9 @@ func (cpu *CPU) FetchAndDecode() (instr uint32, err error) {
 	// and convert it to a 32-bit word
 	instr = binary.LittleEndian.Uint32(cpu.Memory[cpu.PC : cpu.PC+4]) // instr will now be ordered this way: [funct7][rs2][rs1][funct3][rd][opcode]
 
-	cpu.PC += 4 // increment program counter by 4 bytes (32 bits) because each instruction is 4 bytes
+	// program counter is incremented by 4 bytes (32 bits) each time we fetch an instruction
+	// because each instruction is 4 bytes
+	cpu.PC += 4
 	return instr, nil
 }
 
@@ -82,6 +88,7 @@ func (cpu *CPU) Execute(instr uint32) error {
 		// 7 bits for funct7, 5 bits for rs2, 5 bits for rs1, 3 bits for funct3, 5 bits for rd, 7 bits for opcode...togther they form a 32-bit word
 		//
 		// so we can extract the funct7, funct3, rs1, rs2, rd and opcode from the instruction by shifting and masking
+		// reference can be found here: https://github.com/jameslzhu/riscv-card
 		funct3 := (instr >> 12) & 0x7  // shift right by 12 bits and mask out all but the lowest 3 bits to get the funct3 (function code)
 		funct7 := (instr >> 25) & 0x7F // shift right by 25 bits and mask out all but the lowest 7 bits to get the funct7 (function code)
 		rs1 := (instr >> 15) & 0x1F    // shift right by 15 bits and mask out all but the lowest 5 bits to get the rs1 (source register 1)
@@ -102,17 +109,28 @@ func (cpu *CPU) Execute(instr uint32) error {
 	case ADDI:
 		// I-type format: [imm[11:0]][rs1][funct3][rd][opcode]
 		// [31:20] imm[11:0] | [19:15] rs1 | [14:12] funct3 | [11:7] rd | [6:0] opcode
-		return cpu.executeAddi(instr)
+		imm := (instr >> 20) & 0xFFF // shift right by 20 bits and mask out all but the lowest 12 bits to get the imm (immediate value)
+		rs1 := (instr >> 15) & 0x1F  // shift right by 15 bits and mask out all but the lowest 5 bits to get the rs1 (source register 1)
+		rd := (instr >> 7) & 0x1F    // shift right by 7 bits and mask out all but the lowest 5 bits to get the rd (destination register)
+		return cpu.executeAddi(imm, rs1, rd)
 
 	case SW:
 		// S-type format: [imm[11:5]][rs2][rs1][funct3][imm[4:0]][opcode]
 		// [31:25] imm[11:5] | [24:20] rs2 | [19:15] rs1 | [14:12] funct3 | [11:7] imm[4:0] | [6:0] opcode
-		return cpu.executeSw(instr)
+		// immediate is split: upper 7 bits in [31:25], lower 5 bits in [11:7]
+		imm11_5 := (instr >> 25) & 0x7F // extract imm[11:5] from bits [31:25]
+		imm4_0 := (instr >> 7) & 0x1F   // extract imm[4:0] from bits [11:7]
+		imm := (imm11_5 << 5) | imm4_0  // reassemble: imm[11:5] in upper bits, imm[4:0] in lower bits
+		rs2 := (instr >> 20) & 0x1F     // shift right by 20 bits and mask out all but the lowest 5 bits to get the rs2 (source register 2)
+		rs1 := (instr >> 15) & 0x1F     // shift right by 15 bits and mask out all but the lowest 5 bits to get the rs1 (source register 1)
+		return cpu.executeSw(imm, rs2, rs1)
 
 	case LUI:
 		// U-type format: [imm[31:12]][rd][opcode]
 		// [31:12] imm[31:12] | [11:7] rd | [6:0] opcode
-		return cpu.executeLui(instr)
+		imm := (instr >> 12) & 0xFFFFF // shift right by 12 bits and mask out all but the lowest 20 bits to get the imm (immediate value)
+		rd := (instr >> 7) & 0x1F      // shift right by 7 bits and mask out all but the lowest 5 bits to get the rd (destination register)
+		return cpu.executeLui(imm, rd)
 
 	default:
 		return errors.New("invalid instruction")
@@ -161,18 +179,27 @@ func (cpu *CPU) executeSub(rs1 uint32, rs2 uint32, rd uint32) error {
 }
 
 // ADDI (add immediate - adds a 12-bit immediate value to a register)
-func (cpu *CPU) executeAddi(instr uint32) error {
-	panic("unimplemented")
+func (cpu *CPU) executeAddi(imm uint32, rs1 uint32, rd uint32) error {
+	// add the value of rs1 to imm and store in rd
+	cpu.Regs[rd] = cpu.Regs[rs1] + imm
+	return nil
 }
 
 // SW (store word - stores a 32-bit value from a register into memory)
-func (cpu *CPU) executeSw(instr uint32) error {
-	panic("unimplemented")
+func (cpu *CPU) executeSw(imm uint32, rs2 uint32, rs1 uint32) error {
+	// store the value of rs2 into memory at the address specified by imm + rs1
+	// risc-v uses little-endian byte order, so we store 4 bytes in little-endian format
+	addr := imm + cpu.Regs[rs1]
+	binary.LittleEndian.PutUint32(cpu.Memory[addr:addr+4], cpu.Regs[rs2])
+
+	return nil
 }
 
 // LUI (load upper immediate - loads a 20-bit value into the upper 20 bits of a register)
-func (cpu *CPU) executeLui(instr uint32) error {
-	panic("unimplemented")
+func (cpu *CPU) executeLui(imm uint32, rd uint32) error {
+	cpu.Regs[rd] = imm << 12 // shift imm left by 12 bits to load it into the upper 20 bits of rd (destination register)
+
+	return nil
 }
 
 /*
